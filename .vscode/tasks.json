@@ -1,0 +1,60 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "编译 (vlog)",
+            "command": "vlog",
+            "type": "shell",
+            "args": [
+                "${file}",
+            ],
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+        },
+        {
+            "label": "编译 test bench (vlog tb)",
+            "command": "vlog",
+            "type": "shell",
+            "args": [
+                "${fileDirname}/tb_${fileBasename}",
+            ],
+            "presentation": {
+                "reveal": "always",
+                "clear": true
+            },
+            "group": "build",
+            "detail": "必须存在相应 tb_*.v 文件。"
+        },
+        {
+            "label": "编译此文件以及 test bench",
+            "dependsOn": [
+                "编译 (vlog)",
+                "编译 test bench (vlog tb)"
+            ],
+            "group": "build"
+        },
+        {
+            "label": "仿真 (vsim tb)",
+            "type": "process",
+            "command": "vsim",
+            "args": [
+                "-voptargs=+acc",
+                "tb_${fileBasenameNoExtension}",
+            ],
+            "presentation": {
+                "reveal": "always",
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "detail": "打开 Model Sim。必须存在相应 test bench，且模块名为 tb_*。"
+        }
+    ]
+}
