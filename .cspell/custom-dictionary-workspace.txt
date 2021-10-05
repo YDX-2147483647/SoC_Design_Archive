@@ -1,0 +1,8 @@
+# Custom Dictionary Words
+endcase
+endmodule
+localparam
+negedge
+nettype
+posedge
+Verilog
