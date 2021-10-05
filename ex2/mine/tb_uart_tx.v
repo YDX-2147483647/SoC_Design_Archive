@@ -6,6 +6,8 @@
 module tb_uart_tx();
 
     reg clock = 1'b0, clock_en = 1'b0;
+    always #10 clock = ~clock;
+    always #(7680/16) clock_en = ~clock_en;
     
     reg reset, shoot;
     reg [7:0] data;
@@ -20,9 +22,6 @@ module tb_uart_tx();
         .tx (tx),
         .busy (busy)
     );
-
-    always #10 clock = ~clock;
-    always #(7680/16) clock_en = ~clock_en;
 
     initial begin
         data <= 8'hAA;
@@ -43,8 +42,6 @@ module tb_uart_tx();
         shoot = 1'b0;
         @(negedge busy);
         #234;
-
-        $finish;
     end
     
 endmodule
