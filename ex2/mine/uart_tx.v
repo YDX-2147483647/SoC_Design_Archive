@@ -92,14 +92,14 @@ always @(*) begin
     endcase
 end
 
-/// Set `busy`
+
+
+/// Maintain `busy`
 always @(posedge clock or posedge reset) begin
     busy <= ~(reset || state == STATE_idle);
 end
 
-
-
-/// Control `_clock_en_count`, `finish_one_bit`
+/// Maintain `_clock_en_count`, `finish_one_bit`
 always @(posedge clock or posedge reset) begin
     if (reset || state == STATE_idle) begin
         _clock_en_count <= 4'h0;
@@ -112,7 +112,7 @@ always @(posedge clock or posedge reset) begin
     end
 end
 
-/// Control `already_sent_count`
+/// Maintain `already_sent_count`
 always @(posedge clock or posedge reset) begin
     if (reset || state != STATE_data) begin
         already_sent_count <= 3'h0;
@@ -136,7 +136,7 @@ always @(posedge clock or posedge reset) begin
     end
 end
 
-/// Assign `tx`
+/// Control `tx`
 always @(*) begin
     case(state)
     STATE_start:
