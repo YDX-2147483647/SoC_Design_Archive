@@ -55,6 +55,23 @@
                 "isDefault": true
             },
             "detail": "打开 Model Sim。必须存在相应 test bench，且模块名为 tb_*。"
+        },
+        {
+            "label": "仿真 (vsim)",
+            "type": "process",
+            "command": "vsim",
+            "args": [
+                "-voptargs=+acc",
+                "${fileBasenameNoExtension}",
+            ],
+            "presentation": {
+                "reveal": "always",
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "detail": "打开 Model Sim。"
         }
     ]
 }
