@@ -2,7 +2,7 @@
  * @file uart_rx.v
  * @author Y.D.X.
  * @brief UART接收器
- * @version 0.1
+ * @version 0.2
  * @date 2021-10-06
  * @description Universal Asynchronous Receiver/Transmitter.
  *
@@ -165,10 +165,8 @@ end
 always @(posedge clock or posedge reset) begin
     if (reset || state != STATE_data) begin
         already_received_count <= 3'h0;
-    end else begin
-        if (clock_en) begin
-            already_received_count <= already_received_count + 3'h1;
-        end
+    end else if (finish_one_bit) begin
+        already_received_count <= already_received_count + 3'h1;
     end
 end
 

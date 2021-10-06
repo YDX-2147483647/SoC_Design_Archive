@@ -2,8 +2,8 @@
  * @file uart_tx.v
  * @author Y.D.X.
  * @brief UART发送器
- * @version 0.1
- * @date 2021-10-05
+ * @version 0.2
+ * @date 2021-10-06
  * @description Universal Asynchronous Receiver/Transmitter.
  *
  */
@@ -116,7 +116,7 @@ end
 always @(posedge clock or posedge reset) begin
     if (reset || state != STATE_data) begin
         already_sent_count <= 3'h0;
-    end else begin
+    end else if (finish_one_bit) begin
         already_sent_count <= already_sent_count + 3'h1;
     end
 end
@@ -130,7 +130,7 @@ always @(posedge clock or posedge reset) begin
         _data <= 8'b0;
     end else if (state == STATE_idle && shoot) begin
         _data <= data;
-    end else if (state == STATE_data) begin
+    end else if (state == STATE_data && finish_one_bit) begin
         // rotate
         _data <= {_data[0], _data[7:1]};
     end
