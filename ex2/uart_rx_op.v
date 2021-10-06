@@ -18,7 +18,7 @@
 // Additional Comments: 
 //
 //////////////////////////////////////////////////////////////////////////////////
-module uart_rx
+module uart_rx_op
   #(
     parameter VERIFY_ON = 1'b0,
     parameter VERIFY_EVEN = 1'b0
