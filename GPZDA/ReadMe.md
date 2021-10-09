@@ -36,14 +36,15 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Pending
+    [*] --> Pending
     
     Pending --> Pending
     Pending --> Reject : 中道崩殂
     Pending --> Resolve : full match
     
-    Reject --> Idle
-    Resolve --> Idle
+    Reject --> Pending
+    Reject --> Reject : 中道崩殂
+    Resolve --> Pending
+    Resolve --> Resolve : full match
 ```
 
