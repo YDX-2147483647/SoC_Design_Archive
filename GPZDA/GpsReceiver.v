@@ -26,7 +26,7 @@
 module GpsReceiver #(
     parameter B = 8,
     parameter [6*B-1:0] Prefix = "$GPZDA",
-    parameter [B-1:0] Separator = ",";
+    parameter [B-1:0] Separator = ",",
     parameter NoCheck = 1'b1
 ) (
     input wire clock,
