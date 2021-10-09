@@ -1,7 +1,7 @@
 /**
- * @file GpsParser.v
+ * @file GpsReceiver.v
  * @author Y.D.X.
- * @brief GPS（GPZDA）信号解析
+ * @brief 接收GPS（GPZDA）信号并解析
  * @version 0.0
  * @date 2021-10-9
  *
@@ -10,8 +10,9 @@
 `default_nettype none
 
 /**
- * @param B 一个字节的位数
- * @param Prefix 信号前缀，包括“$”，不包括“,”
+ * @param B 每字节位数
+ * @param Prefix 信号前缀，包括“$”，不包括分隔符
+ * @param Separator 分隔符
  * @param NoCheck 是否忽略校验部分
  * @input clock 时钟，100 MHz / 10 ns
  * @input reset 复位（异步）
@@ -22,9 +23,10 @@
  * @output month
  * @output day
  */
-module GpsParser #(
+module GpsReceiver #(
     parameter B = 8,
     parameter [6*B-1:0] Prefix = "$GPZDA",
+    parameter [B-1:0] Separator = ",";
     parameter NoCheck = 1'b1
 ) (
     input wire clock,
@@ -43,6 +45,10 @@ localparam S_Size = 3;
 localparam [S_Size-1:0] S_Idle = 0, S_Prefix = 1, S_Split = 2, S_Check = 3, S_Output = 4;
 /// FSM 的状态
 reg [S_Size-1:0] state, next_state;
+/** 在当前状态停留的时长
+ * @note 会溢出，但由实际，只可能发生在 Idle 时，而此时用不到`stay_count`。
+ */
+reg [B-1:0] stay_count;
 
 /// 设置`state`
 always @(posedge clock or posedge reset) begin
@@ -57,6 +63,17 @@ end
 always @(*) begin
     // TODO
 end
+
+
+/// 更新`stay_count`
+always @(posedge clk or posedge reset) begin
+    if (reset || state != next_state) begin
+        stay_count <= '0;
+    end else begin
+        stay_count <= stay_count + 1;
+    end
+end
+
 
 assign valid_out = state == S_Output;
 
