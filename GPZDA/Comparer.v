@@ -35,21 +35,25 @@ module Comparer #(
 );
 
 /// FSM 可能状态（one-hot）
-localparam S_Idle = 0, S_Pending = 1, S_Reject = 2, S_Resolve = 3;
+localparam S_Pending = 0, S_Reject = 1, S_Resolve = 2;
 /// FSM 的状态
-reg [3:0] is, next_is;
-
-/// 当前位是否匹配
-wire is_current_match;
-assign is_current_match = Ref[match_count +:B] == data;
+reg [2:0] is, next_is;
 
 /// 已经匹配的长度
 reg [B-1: 0] match_count;
 
+/// 当前位是否匹配
+wire is_current_match;
+assign is_current_match = Ref[(L-1-match_count) * B +:B] == data;
+
+/// 算上这一轮，已经匹配的长度
+wire [2:0] next_match_count;
+assign next_match_count = match_count + is_current_match;
+
 /// 设置`is`
-always @(posedge clk, posedge restart) begin
+always @(posedge clock, posedge restart) begin
     if (restart) begin
-        is <= 4'b00001;
+        is <= 3'b001;
     end else begin
         is <= next_is;
     end
@@ -57,16 +61,10 @@ end
 
 /// 设置`next_is`
 always @(*) begin
-    next_is[S_Idle] = is[S_Reject] | is[S_Resolve];
-    if (load) begin
-        next_is[S_Pending] = is[S_Idle] | (is[S_Pending] & is_current_match & match_count<L);
-        next_is[S_Reject] = is[S_Pending] & ~is_current_match;
-        next_is[S_Resolve] = is[S_Pending] & match_count==L;
-    end else begin
-        next_is[S_Pending] = is[S_Pending];
-        next_is[S_Reject] = 1'b0;
-        next_is[S_Resolve] = 1'b0;
-    end
+    next_is[S_Pending] = ~load |
+        (load & is_current_match & next_match_count < L);
+    next_is[S_Reject] = load & ~is_current_match;
+    next_is[S_Resolve] = load & next_match_count == L;
 end
 
 /// Output
@@ -75,11 +73,12 @@ assign
     resolve = is[S_Resolve];
 
 /// 更新`match_count`
-always @(posedge clk) begin
-    if (is[S_Idle]) begin
+always @(posedge clock, posedge restart) begin
+    if (restart) begin
         match_count <= 0;
     end else begin
-        match_count <= match_count + is_current_match;
+        match_count <= (is[S_Pending] & next_match_count < L) ?
+            next_match_count : 0;
     end
 end
     
