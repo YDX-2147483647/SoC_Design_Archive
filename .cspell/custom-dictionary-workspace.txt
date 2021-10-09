@@ -1,4 +1,6 @@
 # Custom Dictionary Words
+casex
+casez
 combinational
 endcase
 endmodule

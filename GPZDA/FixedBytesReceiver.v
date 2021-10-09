@@ -2,7 +2,7 @@
  * @file FixedBytesReceiver.v
  * @author Y.D.X.
  * @brief 接收固定字节数的信号
- * @version 0.1
+ * @version 1.0
  * @date 2021-10-9
  *
  */
@@ -21,17 +21,19 @@
  */
 module FixedBytesReceiver #(
     parameter B = 8,
-    parameter L = 4,
+    parameter L = 4
 ) (
     input wire clock,
     input wire start,
     input wire load,
     input wire [B-1:0] data,
     output wire resolve,
-    output reg [L*B-1:0] result
+    output wire [L*B-1:0] result
 );
     /// 已接收的字节数，不含此轮，[0, L)
     reg [B-1:0] prev_count;
+
+    reg [L*B-1:0] prev_result;
 
     /// 更新`prev_count`
     always @(posedge clock, posedge start) begin
@@ -42,13 +44,17 @@ module FixedBytesReceiver #(
         end
     end
 
+    /// 更新`prev_result`
     always @(posedge clock) begin
         if (load) begin
-            result <= {result[L*B-1 : B], data};
+            prev_result <= result;
         end
     end
     
-    assign resolve = (prev_count == L-1) & load;
+    /// Output
+    assign
+        resolve = (prev_count == L-1) & load,
+        result = {prev_result[0 +: (L-1)*B], data};
     
     
 endmodule
