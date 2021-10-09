@@ -18,8 +18,8 @@
  * @input restart 从这个clock重新开始比较（仍会等待`load`）
  * @input load 是否应该读取此时的`data`
  * @input data 
- * @output reject 是否确定不匹配
  * @output resolve 是否确定完全匹配
+ * @output reject 是否确定不匹配
  */
 module ComparerSync #(
     parameter B = 8,
