@@ -32,6 +32,8 @@ stateDiagram-v2
 
 ## `Comparer`
 
+这是异步的，匹配完成后的下一clock才有反馈。
+
 ```mermaid
 stateDiagram-v2
     [*] --> Pending
@@ -46,3 +48,6 @@ stateDiagram-v2
     Resolve --> Resolve : full match
 ```
 
+## `ComparerSync`
+
+类似`Comparer`，但匹配完成的那一个clock就会反馈。

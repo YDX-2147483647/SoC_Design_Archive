@@ -3,13 +3,13 @@
  * @author Y.D.X.
  * @version 0.1
  * @date 2021-10-9
- * @description `run 300 ns`
+ * @description `run 300 ns`。同时使用`Comparer`和`ComparerSync`。
  *
  */
 
 `timescale 1ns/1ps
 
-`include "Comparer.v"
+`include "ComparerSync.v"
 
 module tb_Comparer ();
 
@@ -20,7 +20,7 @@ reg restart, load;
 reg [7:0] data;
 wire resolve, reject;
 
-Comparer #(
+ComparerSync #(
     .L (3),
     .Ref("ABC")
 ) dut (

@@ -4,6 +4,7 @@
  * @brief 信号比较器
  * @version 0.1
  * @date 2021-10-9
+ * @deprecated 请异步`ComparerSync`。
  *
  */
 
