@@ -15,7 +15,7 @@
  * @param L 信号长度（字节数）
  * @param Ref 参考信号
  * @input clock 时钟，100 MHz / 10 ns
- * @input restart 从这个clock重新开始比较（等待`load`）
+ * @input restart 从这个clock重新开始比较（仍会等待`load`）
  * @input load 是否应该读取此时的`data`
  * @input data 
  * @output reject 是否确定不匹配
@@ -35,30 +35,36 @@ module ComparerSync #(
 );
 
 /// 这轮之前已经匹配的长度
-reg [B-1: 0] prev_match_count;
+reg [B-1:0] prev_match_count = 0;
+/// 这轮之前已经匹配的长度，会快速反应`restart`
+wire [B-1:0] prev_match_count_qr;
+assign prev_match_count_qr = restart ? 0 : prev_match_count;
+
 /// 现在已经匹配的长度
 wire [B-1:0] match_count;
 
 /// 现在这轮是否匹配
 wire is_match;
-assign is_match = Ref[(L-1-prev_match_count) * B +:B] == data;
+assign is_match = Ref[(L-1-prev_match_count_qr) * B +:B] == data;
 
 /// 更新`match_count`
-assign match_count = prev_match_count + (load & is_match);
+assign match_count = prev_match_count_qr + (load & is_match);
 
 /// 为下一轮做准备，更新`prev_match_count`
 always @(posedge clock) begin
-    if (restart) begin
-        prev_match_count <= 0;
-    end else begin
-        prev_match_count <= match_count<L ? match_count : 0;
+    if (load) begin
+        if (is_match) begin
+            prev_match_count <= match_count < L ? match_count : 0;
+        end else begin
+            prev_match_count <= 0;
+        end
     end
 end
 
 
 /// Output
 assign
-    resolve = match_count == L & load,
+    resolve = match_count == L,
     reject = ~is_match & load;
     
 endmodule

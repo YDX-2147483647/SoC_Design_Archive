@@ -3,7 +3,7 @@
  * @author Y.D.X.
  * @version 0.1
  * @date 2021-10-9
- * @description `run 300 ns`。同时适用于`Comparer`和`ComparerSync`。
+ * @description `run 1 us`。同时适用于`Comparer`和`ComparerSync`。
  *
  */
 
@@ -28,6 +28,13 @@ ComparerSync #(
     .resolve(resolve), .reject(reject)
 );
 
+
+
+reg __ref_resolve;
+wire __mismatch_resolve;
+assign __mismatch_resolve = __ref_resolve ^ resolve;
+
+
 initial begin
     restart <= 1'b1;
     load <= 1'b0;
@@ -35,13 +42,16 @@ initial begin
     #40;
     restart <= 1'b0;
     data <= "O";
+    __ref_resolve <= 1'b0;
     
     #20;
     load <= 1'b1;
     data <= "A";
     #20 data <= "B";
     #20 data <= "C";
+    __ref_resolve <= 1'b1;
     #20 data <= "D";
+    __ref_resolve <= 1'b0;
     
     #20 load <= 1'b0;
     
@@ -49,8 +59,41 @@ initial begin
     #20 load <= 1'b0; data <= "a";
     #20 load <= 1'b1; data <= "B";
     #20 load <= 1'b0; data <= "b";
-    #20 load <= 1'b1; data <= "C";
-    #20 load <= 1'b0; data <= "c";
+    #20 load <= 1'b1; data <= "C"; __ref_resolve <= 1'b1;
+    #20 load <= 1'b0; data <= "c"; __ref_resolve <= 1'b0;
+
+    #40;
+    load <= 1'b1;
+    #20 data <= "A";
+    #20 data <= "B";
+    #20 data <= "X";
+    #20 data <= "C";
+    #20 data <= "A";
+    #20 data <= "B";
+    #20 data <= "C"; __ref_resolve <= 1'b1;
+    #20 data <= "A"; __ref_resolve <= 1'b0;
+    #20 data <= "B";
+    #20 data <= "C"; __ref_resolve <= 1'b1;
+    #20 data <= "A"; __ref_resolve <= 1'b0;
+    #20 data <= "B";
+    #20 data <= "A";
+    #20 data <= "B";
+    #20 data <= "A";
+    #20 data <= "B";
+    #20 data <= "C"; __ref_resolve <= 1'b1;
+    #20; __ref_resolve <= 1'b0;
+
+    #40;
+    #20 data <= "A";
+    #20 data <= "B";
+    #20 data <= "C"; restart <= 1'b1;
+    #20 data <= "A"; restart <= 1'b0;
+    #20 data <= "B"; restart <= 1'b1;
+    #20 data <= "C"; restart <= 1'b0;
+    #20 data <= "A"; restart <= 1'b1;
+    #20 data <= "B"; restart <= 1'b0;
+    #20 data <= "C"; __ref_resolve <= 1'b1;
+    #20 __ref_resolve <= 1'b0;
 end
 
 endmodule
