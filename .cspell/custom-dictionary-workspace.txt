@@ -1,8 +1,10 @@
 # Custom Dictionary Words
+combinational
 endcase
 endmodule
 localparam
 negedge
 nettype
 posedge
+testbench
 Verilog

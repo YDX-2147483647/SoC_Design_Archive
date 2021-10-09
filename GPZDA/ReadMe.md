@@ -6,9 +6,7 @@
 $GPZDA,hhmmss.ss,dd,mm,yyyy,,*hh
 ```
 
-## 设计
-
-有限状态机。
+## `GpsReceiver`
 
 ```mermaid
 stateDiagram-v2
@@ -32,5 +30,20 @@ stateDiagram-v2
     Split --> Check
     Check --> Output
     Output --> Idle
+```
+
+## `Comparer`
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Pending
+    
+    Pending --> Pending
+    Pending --> Reject : 中道崩殂
+    Pending --> Resolve : full match
+    
+    Reject --> Idle
+    Resolve --> Idle
 ```
 
