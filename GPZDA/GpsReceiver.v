@@ -66,7 +66,7 @@ end
 
 
 /// 更新`stay_count`
-always @(posedge clk or posedge reset) begin
+always @(posedge clock or posedge reset) begin
     if (reset || state != next_state) begin
         stay_count <= '0;
     end else begin
