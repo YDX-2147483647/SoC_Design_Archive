@@ -6,6 +6,8 @@
 $GPZDA,hhmmss.ss,dd,mm,yyyy,,*hh
 ```
 
+> 注释里的“轮”指clock。
+
 ## `GpsReceiver`
 
 ```mermaid
@@ -48,7 +50,7 @@ stateDiagram-v2
     Resolve --> Resolve : full match
 ```
 
-## `ComparerSync`
+### `ComparerSync`
 
 类似`Comparer`，但匹配完成的那一个clock就会反馈。
 
