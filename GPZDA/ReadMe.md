@@ -10,10 +10,8 @@ $GPZDA,hhmmss.ss,dd,mm,yyyy,,*hh
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    Idle --> Prefix
-    note right of Prefix: 匹配"$GPZDA,"
-    Prefix --> Idle: 不匹配
+    [*] --> Prefix
+    note right of Prefix: 匹配"$GPZDA,"；<br>任何时候不匹配都回到它。
     
     Prefix --> Split
     state Split {
@@ -29,7 +27,7 @@ stateDiagram-v2
     }
     Split --> Check
     Check --> Output
-    Output --> Idle
+    Output --> Prefix
 ```
 
 ## `Comparer`
