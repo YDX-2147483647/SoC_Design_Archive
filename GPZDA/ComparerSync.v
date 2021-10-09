@@ -2,7 +2,7 @@
  * @file ComparerSync.v
  * @author Y.D.X.
  * @brief 信号比较器（同步）
- * @version 0.1
+ * @version 1.0
  * @date 2021-10-9
  *
  */
@@ -44,10 +44,10 @@ wire is_match;
 assign is_match = Ref[(L-1-prev_match_count) * B +:B] == data;
 
 /// 更新`match_count`
-assign match_count = prev_match_count + load & is_match;
+assign match_count = prev_match_count + (load & is_match);
 
 /// 为下一轮做准备，更新`prev_match_count`
-always @(posedge clk) begin
+always @(posedge clock) begin
     if (restart) begin
         prev_match_count <= 0;
     end else begin
@@ -58,7 +58,7 @@ end
 
 /// Output
 assign
-    resolve = match_count == L,
-    reject = ~is_match;
+    resolve = match_count == L & load,
+    reject = ~is_match & load;
     
 endmodule

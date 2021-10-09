@@ -3,7 +3,7 @@
  * @author Y.D.X.
  * @version 0.1
  * @date 2021-10-9
- * @description `run 300 ns`。同时使用`Comparer`和`ComparerSync`。
+ * @description `run 300 ns`。同时适用于`Comparer`和`ComparerSync`。
  *
  */
 
