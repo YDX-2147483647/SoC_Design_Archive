@@ -51,3 +51,5 @@ stateDiagram-v2
 ## `ComparerSync`
 
 类似`Comparer`，但匹配完成的那一个clock就会反馈。
+
+不是FSM，要不然做不到即时。

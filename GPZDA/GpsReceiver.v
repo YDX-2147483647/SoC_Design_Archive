@@ -9,7 +9,7 @@
 
 `default_nettype none
 
-`include "Comparer.v"
+`include "ComparerSync.v"
 
 /**
  * @param B 每字节位数
@@ -53,12 +53,12 @@ reg [S_Size-1:0] state, next_state;
 
 
 wire prefix_resolve, prefix_reject;
-Comparer #(
-    .L (PrefixLen),
-    .Ref (Prefix)
+ComparerSync #(
+    .L (PrefixLen + 1),
+    .Ref ({Prefix, Separator})
 ) prefix_matcher (
     .clock (clock),
-    .restart (prefix_reject | state != S_Prefix),
+    .restart (state != S_Prefix),
     .load (state == S_Prefix & load),
     .data (data),
     .resolve (prefix_resolve),
