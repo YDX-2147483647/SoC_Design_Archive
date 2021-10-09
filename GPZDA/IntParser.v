@@ -16,10 +16,14 @@
  * @output num 二进制格式的数
  */
 module IntParser #(
-    parameter B = 8;
+    parameter B = 8
 ) (
     input wire [4*B-1:0] str,
     output wire [2*B-1:0] num
 );
-    
+    assign num =
+        (str[0*B +:B] ? str[0*B +:B] - "0": 0) + 
+        (str[1*B +:B] ? str[1*B +:B] - "0": 0) * 10 +
+        (str[2*B +:B] ? str[2*B +:B] - "0": 0) * 100 +
+        (str[3*B +:B] ? str[3*B +:B] - "0": 0) * 1000;
 endmodule
