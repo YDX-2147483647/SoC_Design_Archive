@@ -2,7 +2,7 @@
  * @file ComparerSync.v
  * @author Y.D.X.
  * @brief 信号比较器（同步）
- * @version 1.1
+ * @version 1.2
  * @date 2021-10-9
  *
  */
@@ -59,6 +59,8 @@ always @(posedge clock) begin
             // 同时尝试重新匹配
             prev_match_count <= Ref[(L-1) * B +:B] == data;
         end
+    end else begin
+        prev_match_count <= match_count;
     end
 end
 

@@ -11,7 +11,7 @@
 
 `include "GpsReceiver.v"
 
-module tb_GpsReceiver ();
+module tb_GpsReceiver_2 ();
 
 localparam B = 8;
 
