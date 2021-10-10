@@ -3,7 +3,9 @@ casex
 casez
 combinational
 endcase
+endgenerate
 endmodule
+genvar
 localparam
 negedge
 nettype

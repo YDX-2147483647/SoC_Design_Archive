@@ -4,7 +4,6 @@
  * @brief 解析十六进制数
  * @version 0.1
  * @date 2021-10-10
- * 我不太清楚这是否能综合，反正 https://hdlbits.01xz.net/wiki/Popcount255 的答案是这么写的。
  *
  */
 
@@ -24,13 +23,25 @@ module HexParser #(
     input wire [2*L*B-1 : 0] str,
     output wire [L*B-1 : 0] num
 );
-    always @(*) begin
-        num = '0;
-        for (int i = 2*L-1; i >= 0; i--) begin
-            num = 16 * num + (
-                str[i*B +:B] <= "9" ?
-                (str[i*B +:B] - "0") :
-                (str[i*B +:B] - "A" + 10));
+
+    wire [2*L * B - 1 : 0] bin_coded_hex;
+    wire [2*L * L*B - 1 : 0] partial_sum;
+
+    assign num = partial_sum[0 +: L*B];
+
+    genvar i, j;
+    generate
+        for (i = 0; i < 2*L*B; i = i+B ) begin
+            assign bin_coded_hex[i +:B] =
+                str[i +:B] <= "9" ?
+                (str[i +:B] - "0") :
+                (str[i +:B] - "A" + 10);
         end
-    end
+        
+        assign partial_sum[2*L * L*B - 1 -: L*B] = bin_coded_hex[2*L * B - 1 -: B];
+        for (j = 0; j < 2*L*B - B; j = j + B) begin
+            assign partial_sum[L*j +: L*B] =
+                partial_sum[L*(j+B) +: L*B] * 16 + bin_coded_hex[j +: B];
+        end
+    endgenerate
 endmodule
