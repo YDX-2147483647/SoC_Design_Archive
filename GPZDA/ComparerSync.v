@@ -12,7 +12,7 @@
 /**
  * 信号比较器
  * @param B 每字节位数
- * @param L 信号长度（字节数），不宜为1
+ * @param L 信号长度（字节数），大于1
  * @param Ref 参考信号
  * @input clock 时钟，100 MHz / 10 ns
  * @input restart 从这个clock重新开始比较（仍会等待`load`）
@@ -35,7 +35,7 @@ module ComparerSync #(
 );
 
 /// 这轮之前已经匹配的长度
-reg [B-1:0] prev_match_count = 0;
+reg [B-1:0] prev_match_count;
 /// 这轮之前已经匹配的长度，会快速反应`restart`
 wire [B-1:0] prev_match_count_qr;
 assign prev_match_count_qr = restart ? 0 : prev_match_count;
