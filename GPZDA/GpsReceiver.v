@@ -2,7 +2,7 @@
  * @file GpsReceiver.v
  * @author Y.D.X.
  * @brief 接收GPS（GPZDA）信号并解析
- * @version 0.3
+ * @version 0.4
  * @date 2021-10-9
  *
  */
@@ -69,7 +69,7 @@ ComparerSync #(
     .Ref ({"$", Prefix, Separator})
 ) prefix_matcher (
     .clock (clock),
-    .restart (state != S_Prefix),
+    .restart (reset || state != S_Prefix),
     .load (state == S_Prefix & load),
     .data (data),
     .resolve (prefix_resolve)
