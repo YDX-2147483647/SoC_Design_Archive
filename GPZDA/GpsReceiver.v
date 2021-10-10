@@ -2,7 +2,7 @@
  * @file GpsReceiver.v
  * @author Y.D.X.
  * @brief 接收GPS（GPZDA）信号并解析
- * @version 0.4
+ * @version 0.5
  * @date 2021-10-9
  *
  */
@@ -19,6 +19,7 @@
  * @param B 每字节位数
  * @param PrefixLen `Prefix`的长度
  * @param Prefix 信号前缀，不包括“$”和分隔符
+ * @param PrefixCheckSum `Prefix`各字节的异或
  * @param Separator 分隔符
  * @input clock 时钟，100 MHz / 10 ns
  * @input reset 复位（异步）
@@ -35,6 +36,7 @@ module GpsReceiver #(
     parameter B = 8,
     parameter PrefixLen = 5,
     parameter [PrefixLen*B-1:0] Prefix = "GPZDA",
+    parameter [B-1:0] PrefixCheckSum = 8'h48,
     parameter [B-1:0] Separator = ","
 ) (
     input wire clock,
@@ -157,7 +159,7 @@ ComparerSync #(
     reg [B-1:0] check_sum;
     always @(posedge clock) begin
         if (state == S_Prefix) begin
-            check_sum <= (^Prefix) ^ "," ^ "*";
+            check_sum <= PrefixCheckSum ^ "," ^ "*";
         end else if (load && state != S_Check) begin
             check_sum <= check_sum ^ data;
         end
