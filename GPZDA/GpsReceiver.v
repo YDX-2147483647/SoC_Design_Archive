@@ -2,7 +2,7 @@
  * @file GpsReceiver.v
  * @author Y.D.X.
  * @brief 接收GPS（GPZDA）信号并解析
- * @version 0.1
+ * @version 0.2
  * @date 2021-10-9
  *
  */
@@ -203,7 +203,7 @@ always @(*) begin
         S_Month: next_state = month_resolve ? S_Year : S_Month;
         S_Year: next_state = year_resolve ? S_Locale : S_Year;
         S_Locale: next_state = locale_resolve ? S_Check : S_Locale;
-        S_Check: next_state = S_Output;
+        S_Check: next_state = check_resolve ? S_Output : S_Check;
         S_Output: next_state = S_Prefix;
         default: next_state = S_Prefix;
     endcase

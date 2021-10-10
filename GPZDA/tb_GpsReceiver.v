@@ -1,7 +1,7 @@
 /**
  * @file tb_GpsReceiver.v
  * @author Y.D.X.
- * @version 0.2
+ * @version 0.3
  * @date 2021-10-10
  * @description `run 3 us`。
  *
@@ -30,8 +30,8 @@ GpsReceiver receiver(
 );
 
 reg set_signal;
-reg [32*B-1:0] signal;
-GpsSimpleSender #(.L(32)) sender (
+reg [34*B-1:0] signal;
+GpsSimpleSender #(.L(34)) sender (
     .clock (clock),
     .set (set_signal),
     .signal (signal),
@@ -41,23 +41,28 @@ GpsSimpleSender #(.L(32)) sender (
 initial begin
     reset <= 1'b1;
     set_signal <= 1'b1;
-    signal <= "$GPZDA,143042.00,25,08,2005,,*6E";
+    signal <= "$GPZDA,143042.00,25,08,2005,,*6E\r\n";
 
-    #20 reset <= 1'b0; set_signal <= 1'b0;
+    #40 reset <= 1'b0; set_signal <= 1'b0;
     #700;
 
     set_signal <= 1'b1;
-    signal <= "(just kidding)(just kidding)(jus";
+    signal <= "(just kidding)(just kidding)(jus\r\n";
     #20 set_signal <= 1'b0;
     #300;
 
     set_signal <= 1'b1;
-    signal <= "$$$$ $$$ $$ $$ $$$$ $$$$ $$ $$$$";
+    signal <= "$$$$ $$$ $$ $$ $$$$ $$$$ $$ $$$$\r\n";
     #20 set_signal <= 1'b0;
     #300;
 
     set_signal <= 1'b1;
-    signal <= "$GPZDA,143042.00,25-08-2005,,*FF";
+    signal <= "$GPZDA,143042.00,25-08-2005,,*FF\r\n";
+    #20 set_signal <= 1'b0;
+    #700;
+
+    set_signal <= 1'b1;
+    signal <= "$GPZDA,143042.00,25,08,2005,,*FF\r\n";
     #20 set_signal <= 1'b0;
     #700;
 end
@@ -66,7 +71,7 @@ endmodule
 
 module GpsSimpleSender #(
     parameter B = 8,
-    parameter L = 32
+    parameter L = 34
 ) (
     input wire clock,
     input wire set,
