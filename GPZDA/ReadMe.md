@@ -53,3 +53,39 @@ stateDiagram-v2
 类似`Comparer`，但匹配完成的那一个clock就会反馈。
 
 不是FSM，要不然做不到即时。
+
+```mermaid
+flowchart LR
+    subgraph input
+        restart
+        load
+        data
+    end
+    
+    prev[[prev_match_count]] --> prev_qr[prev_match_count_qr]
+    restart --> prev_qr
+    
+    prev_qr --> is_match
+    data --> is_match
+    
+    prev_qr --> match_count
+    load --> match_count
+    is_match --> match_count
+    
+    load -.-> prev
+    is_match -.-> prev
+    match_count -.-> prev
+    data -.-> prev
+    
+    match_count --> resolve
+    is_match --> reject
+    load --> reject
+    
+    subgraph output
+        resolve
+        reject
+    end
+```
+
+> 双线框代表`reg`，单线框代表`wire`；实线代表`=`，虚线代表`=>`。
+
