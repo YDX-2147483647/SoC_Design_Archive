@@ -2,7 +2,7 @@
  * @file GpsReceiver.v
  * @author Y.D.X.
  * @brief 接收GPS（GPZDA）信号并解析
- * @version 0.2
+ * @version 0.3
  * @date 2021-10-9
  *
  */
