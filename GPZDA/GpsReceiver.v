@@ -26,7 +26,7 @@
  * @output resolve 是否完成接收
  * @output utc
  * @output day
- * @output monthh
+ * @output month
  * @output year
  * @output error 是否发现数据异常
  */
@@ -77,8 +77,8 @@ ComparerSync #(
 
 /// UTC
 wire utc_resolve;
-wire [8*B-1:0] utc_result;
-FixedBytesReceiver #(.L(8)) utc_receiver (
+wire [10*B-1:0] utc_result;
+FixedBytesReceiver #(.L(10)) utc_receiver (
     .clock (clock),
     .start (prefix_resolve),
     .load (state == S_UTC & load),
@@ -151,7 +151,7 @@ end
 /// day, month
 always @(posedge clock) begin
     if (day_or_month_resolve) begin
-        if (state = S_Day) begin
+        if (state == S_Day) begin
             day <= day_or_month_result[B +:2*B];
         end else begin
             day <= day_or_month_result[B +:2*B];
