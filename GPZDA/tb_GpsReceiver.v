@@ -1,9 +1,9 @@
 /**
  * @file tb_GpsReceiver.v
  * @author Y.D.X.
- * @version 0.1
+ * @version 0.2
  * @date 2021-10-10
- * @description `run 1 us`。
+ * @description `run 3 us`。
  *
  */
 
@@ -43,9 +43,23 @@ initial begin
     set_signal <= 1'b1;
     signal <= "$GPZDA,143042.00,25,08,2005,,*6E";
 
-    #20
-    reset <= 1'b0;
-    set_signal <= 1'b0;
+    #20 reset <= 1'b0; set_signal <= 1'b0;
+    #700;
+
+    set_signal <= 1'b1;
+    signal <= "(just kidding)(just kidding)(jus";
+    #20 set_signal <= 1'b0;
+    #300;
+
+    set_signal <= 1'b1;
+    signal <= "$$$$ $$$ $$ $$ $$$$ $$$$ $$ $$$$";
+    #20 set_signal <= 1'b0;
+    #300;
+
+    set_signal <= 1'b1;
+    signal <= "$GPZDA,143042.00,25-08-2005,,*FF";
+    #20 set_signal <= 1'b0;
+    #700;
 end
 
 endmodule
