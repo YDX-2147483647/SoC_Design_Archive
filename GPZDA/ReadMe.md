@@ -15,19 +15,17 @@ stateDiagram-v2
     [*] --> Prefix
     note right of Prefix: 匹配"$GPZDA,"；<br>任何时候不匹配都回到它。
     
-    Prefix --> Split
-    state Split {
-        [*] --> Num
-        Num --> Num
-        Num --> Comma
-        Comma --> Num
-        Comma --> Comma
-
-        Num --> Star
-        Comma --> Star
-        Star --> [*]
-    }
-    Split --> Check
+    Prefix --> UTC
+    note left of UTC: hhmmss.ss
+    UTC --> Day
+    note left of Day: dd
+    Day --> Month
+    note right of Month: mm
+    Month --> Year
+    note left of Year: yyyy
+    Year --> Locale
+    note right of Locale: 只支持什么都没有的Locale
+    Locale --> Check
     Check --> Output
     Output --> Prefix
 ```
