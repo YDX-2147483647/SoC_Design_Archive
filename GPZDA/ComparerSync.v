@@ -2,7 +2,7 @@
  * @file ComparerSync.v
  * @author Y.D.X.
  * @brief 信号比较器（同步）
- * @version 1.0
+ * @version 1.1
  * @date 2021-10-9
  *
  */
@@ -12,7 +12,7 @@
 /**
  * 信号比较器
  * @param B 每字节位数
- * @param L 信号长度（字节数）
+ * @param L 信号长度（字节数），不宜为1
  * @param Ref 参考信号
  * @input clock 时钟，100 MHz / 10 ns
  * @input restart 从这个clock重新开始比较（仍会等待`load`）
@@ -56,7 +56,8 @@ always @(posedge clock) begin
         if (is_match) begin
             prev_match_count <= match_count < L ? match_count : 0;
         end else begin
-            prev_match_count <= 0;
+            // 同时尝试重新匹配
+            prev_match_count <= Ref[(L-1) * B +:B] == data;
         end
     end
 end

@@ -1,9 +1,9 @@
 /**
  * @file tb_Comparer.v
  * @author Y.D.X.
- * @version 0.1
+ * @version 0.2
  * @date 2021-10-9
- * @description `run 1 us`。同时适用于`Comparer`和`ComparerSync`。
+ * @description `run 1.2 us`。同时适用于`Comparer`和`ComparerSync`。
  *
  */
 
@@ -92,6 +92,10 @@ initial begin
     #20 data <= "C"; restart <= 1'b0;
     #20 data <= "A"; restart <= 1'b1;
     #20 data <= "B"; restart <= 1'b0;
+    #20 data <= "C"; __ref_resolve <= 1'b1;
+    #20 data <= "A"; __ref_resolve <= 1'b0;
+
+    #40 data <= "B";
     #20 data <= "C"; __ref_resolve <= 1'b1;
     #20 __ref_resolve <= 1'b0;
 end
