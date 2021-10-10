@@ -2,7 +2,7 @@
  * @file GpsReceiver.v
  * @author Y.D.X.
  * @brief 接收GPS（GPZDA）信号并解析
- * @version 0.0
+ * @version 0.1
  * @date 2021-10-9
  *
  */
@@ -12,6 +12,7 @@
 `include "ComparerSync.v"
 `include "FixedBytesReceiver.v"
 `include "HexParser.v"
+`include "IntParser.v"
 
 /**
  * GPS信号接收器
@@ -95,42 +96,42 @@ ComparerSync #(
 
     /// Day
     wire day_resolve;
-    wire [3*B-1:0] day_result;
+    wire [3*B-1:0] day_result_str;
     FixedBytesReceiver #(.L(3)) day_receiver (
         .clock (clock),
         .start (utc_resolve),
         .load (state == S_Day & load),
         .data (data),
         .resolve (day_resolve),
-        .result (day_result)
+        .result (day_result_str)
     );
-    assign _errors[S_Day] = day_resolve && day_result[0+:B] != Separator;
+    assign _errors[S_Day] = day_resolve && day_result_str[0+:B] != Separator;
 
     /// Month
     wire month_resolve;
-    wire [3*B-1:0] month_result;
+    wire [3*B-1:0] month_result_str;
     FixedBytesReceiver #(.L(3)) month_receiver (
         .clock (clock),
         .start (day_resolve),
         .load (state == S_Month & load),
         .data (data),
         .resolve (month_resolve),
-        .result (month_result)
+        .result (month_result_str)
     );
-    assign _errors[S_Month] = month_resolve && month_result[0+:B] != Separator;
+    assign _errors[S_Month] = month_resolve && month_result_str[0+:B] != Separator;
 
     /// Year
     wire year_resolve;
-    wire [3*B-1:0] year_result;
+    wire [5*B-1:0] year_result_str;
     FixedBytesReceiver #(.L(5)) year_receiver (
         .clock (clock),
         .start (month_resolve),
         .load (state == S_Year & load),
         .data (data),
         .resolve (year_resolve),
-        .result (year_result)
+        .result (year_result_str)
     );
-    assign _errors[S_Year] = year_resolve && year_result[0+:B] != Separator;
+    assign _errors[S_Year] = year_resolve && year_result_str[0+:B] != Separator;
 
     /// Locale
     wire locale_resolve;
@@ -140,7 +141,8 @@ ComparerSync #(
         .start (year_resolve),
         .load (state == S_Locale & load),
         .data (data),
-        .resolve (locale_resolve)
+        .resolve (locale_resolve),
+        .result (locale_result)
     );
     assign _errors[S_Locale] = locale_resolve && (locale_result[0+:B] != "*" || locale_result[B+:B] != Separator);
 
@@ -164,7 +166,7 @@ ComparerSync #(
     /// 接收校验位
     wire check_resolve;
     wire [2*B-1:0] check_result_str;
-    FixedBytesReceiver #(.L(2)) utc_receiver (
+    FixedBytesReceiver #(.L(2)) check_receiver (
         .clock (clock),
         .start (locale_resolve),
         .load (state == S_Check & load),
@@ -178,8 +180,9 @@ ComparerSync #(
         .num (check_result)
     );
 
-    assign _errors[S_Check] == check_resolve && check_result != check_sum;
+    assign _errors[S_Check] = check_resolve && check_result != check_sum;
 /// @}
+
 
 
 /// 设置`state`
@@ -191,7 +194,7 @@ always @(posedge clock or posedge reset) begin
     end
 end
 
-// TODO 状态转移逻辑，设置`next_state`
+// 状态转移逻辑，设置`next_state`
 always @(*) begin
     case (state)
         S_Prefix: next_state = prefix_resolve ? S_UTC : S_Prefix;
@@ -205,6 +208,26 @@ always @(*) begin
         default: next_state = S_Prefix;
     endcase
 end
+
+
+
+/** Int parser
+ * Day、Month、Year 分时共用。
+ * @{
+ */
+    reg [4*B-1:0] int_parser_str;
+    wire [2*B-1:0] int_parser_num;
+    IntParser int_parser(.str(int_parser_str), .num(int_parser_num));
+
+    always @(*) begin
+        case (state)
+            S_Day: int_parser_str = day_result_str[B +: 2*B];
+            S_Month: int_parser_str = month_result_str[B +: 2*B];
+            S_Year: int_parser_str = year_result_str[B +: 4*B];
+            default: int_parser_str = "0000";
+        endcase
+    end
+/// @}
 
 
 
@@ -225,28 +248,18 @@ end
     // utc
     always @(posedge clock) begin
         if (utc_resolve) begin
-            utc <= utc_result[B +:7*B];
+            utc <= utc_result[B +:9*B];
         end
     end
 
-    /// day
+    /// day, month, year
     always @(posedge clock) begin
         if (day_resolve) begin
-            day <= day_result[B +:2*B];
-        end
-    end
-
-    /// month
-    always @(posedge clock) begin
-        if (month_resolve) begin
-            month <= month_result[B +:2*B];
-        end
-    end
-
-    /// year
-    always @(posedge clock) begin
-        if (year_resolve) begin
-            year <= year_result[B +:2*B];
+            day <= int_parser_num;
+        end else if (month_resolve) begin
+            month <= int_parser_num;
+        end else if (year_resolve) begin
+            year <= int_parser_num;
         end
     end
 

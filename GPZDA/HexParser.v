@@ -2,7 +2,7 @@
  * @file HexParser.v
  * @author Y.D.X.
  * @brief 解析十六进制数
- * @version 0.1
+ * @version 1.0
  * @date 2021-10-10
  *
  */
