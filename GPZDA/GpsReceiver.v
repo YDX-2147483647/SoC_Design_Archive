@@ -11,14 +11,14 @@
 
 `include "ComparerSync.v"
 `include "FixedBytesReceiver.v"
+`include "HexParser.v"
 
 /**
  * GPS信号接收器
  * @param B 每字节位数
  * @param PrefixLen `Prefix`的长度
- * @param Prefix 信号前缀，包括“$”，不包括分隔符
+ * @param Prefix 信号前缀，不包括“$”和分隔符
  * @param Separator 分隔符
- * @param NoCheck 是否忽略校验部分
  * @input clock 时钟，100 MHz / 10 ns
  * @input reset 复位（异步）
  * @input load 是否应该读取此时的`data`
@@ -32,10 +32,9 @@
  */
 module GpsReceiver #(
     parameter B = 8,
-    parameter PrefixLen = 6,
-    parameter [PrefixLen*B-1:0] Prefix = "$GPZDA",
-    parameter [B-1:0] Separator = ",",
-    parameter NoCheck = 1'b1
+    parameter PrefixLen = 5,
+    parameter [PrefixLen*B-1:0] Prefix = "GPZDA",
+    parameter [B-1:0] Separator = ","
 ) (
     input wire clock,
     input wire reset,
@@ -65,8 +64,8 @@ wire [6:1] _errors;
 /// Prefix
 wire prefix_resolve;
 ComparerSync #(
-    .L (PrefixLen + 1),
-    .Ref ({Prefix, Separator})
+    .L (PrefixLen + 2),
+    .Ref ({"$", Prefix, Separator})
 ) prefix_matcher (
     .clock (clock),
     .restart (state != S_Prefix),
@@ -75,69 +74,112 @@ ComparerSync #(
     .resolve (prefix_resolve)
 );
 
-/// UTC
-wire utc_resolve;
-wire [10*B-1:0] utc_result;
-FixedBytesReceiver #(.L(10)) utc_receiver (
-    .clock (clock),
-    .start (prefix_resolve),
-    .load (state == S_UTC & load),
-    .data (data),
-    .resolve (utc_resolve),
-    .result (utc_result)
-);
-assign _errors[S_UTC] = utc_resolve && utc_result[0+:B] != Separator;
 
-/// Day
-wire day_resolve;
-wire [3*B-1:0] day_result;
-FixedBytesReceiver #(.L(3)) day_receiver (
-    .clock (clock),
-    .start (utc_resolve),
-    .load (state == S_Day & load),
-    .data (data),
-    .resolve (day_resolve),
-    .result (day_result)
-);
-assign _errors[S_Day] = day_resolve && day_result[0+:B] != Separator;
 
-/// Month
-wire month_resolve;
-wire [3*B-1:0] month_result;
-FixedBytesReceiver #(.L(3)) month_receiver (
-    .clock (clock),
-    .start (day_resolve),
-    .load (state == S_Month & load),
-    .data (data),
-    .resolve (month_resolve),
-    .result (month_result)
-);
-assign _errors[S_Month] = month_resolve && month_result[0+:B] != Separator;
+/** Receivers: UTC, …
+ * @notes 现在这里有一堆重复的元件，但我没想好怎么改……
+ * @{
+ */
+    /// UTC
+    wire utc_resolve;
+    wire [10*B-1:0] utc_result;
+    FixedBytesReceiver #(.L(10)) utc_receiver (
+        .clock (clock),
+        .start (prefix_resolve),
+        .load (state == S_UTC & load),
+        .data (data),
+        .resolve (utc_resolve),
+        .result (utc_result)
+    );
+    assign _errors[S_UTC] = utc_resolve && utc_result[0+:B] != Separator;
 
-/// Year
-wire year_resolve;
-wire [3*B-1:0] year_result;
-FixedBytesReceiver #(.L(5)) year_receiver (
-    .clock (clock),
-    .start (month_resolve),
-    .load (state == S_Year & load),
-    .data (data),
-    .resolve (year_resolve),
-    .result (year_result)
-);
-assign _errors[S_Year] = year_resolve && year_result[0+:B] != Separator;
+    /// Day
+    wire day_resolve;
+    wire [3*B-1:0] day_result;
+    FixedBytesReceiver #(.L(3)) day_receiver (
+        .clock (clock),
+        .start (utc_resolve),
+        .load (state == S_Day & load),
+        .data (data),
+        .resolve (day_resolve),
+        .result (day_result)
+    );
+    assign _errors[S_Day] = day_resolve && day_result[0+:B] != Separator;
 
-/// Locale
-wire locale_resolve;
-wire [2*B-1:0] locale_result;
-FixedBytesReceiver #(.L(2)) locale_receiver (
-    .clock (clock),
-    .start (year_resolve),
-    .load (state == S_Locale & load),
-    .data (data),
-    .resolve (locale_resolve)
-);
-assign _errors[S_Locale] = locale_resolve && (locale_result[0+:B] != "*" || locale_result[B+:B] != Separator);
+    /// Month
+    wire month_resolve;
+    wire [3*B-1:0] month_result;
+    FixedBytesReceiver #(.L(3)) month_receiver (
+        .clock (clock),
+        .start (day_resolve),
+        .load (state == S_Month & load),
+        .data (data),
+        .resolve (month_resolve),
+        .result (month_result)
+    );
+    assign _errors[S_Month] = month_resolve && month_result[0+:B] != Separator;
+
+    /// Year
+    wire year_resolve;
+    wire [3*B-1:0] year_result;
+    FixedBytesReceiver #(.L(5)) year_receiver (
+        .clock (clock),
+        .start (month_resolve),
+        .load (state == S_Year & load),
+        .data (data),
+        .resolve (year_resolve),
+        .result (year_result)
+    );
+    assign _errors[S_Year] = year_resolve && year_result[0+:B] != Separator;
+
+    /// Locale
+    wire locale_resolve;
+    wire [2*B-1:0] locale_result;
+    FixedBytesReceiver #(.L(2)) locale_receiver (
+        .clock (clock),
+        .start (year_resolve),
+        .load (state == S_Locale & load),
+        .data (data),
+        .resolve (locale_resolve)
+    );
+    assign _errors[S_Locale] = locale_resolve && (locale_result[0+:B] != "*" || locale_result[B+:B] != Separator);
+
+/// @}
+
+
+
+/** Check
+ * @{
+ */
+    /// 计算`check_sum`
+    reg [B-1:0] check_sum;
+    always @(posedge clock) begin
+        if (state == S_Prefix) begin
+            check_sum <= (^Prefix) ^ "," ^ "*";
+        end else if (load && state != S_Check) begin
+            check_sum <= check_sum ^ data;
+        end
+    end
+
+    /// 接收校验位
+    wire check_resolve;
+    wire [2*B-1:0] check_result_str;
+    FixedBytesReceiver #(.L(2)) utc_receiver (
+        .clock (clock),
+        .start (locale_resolve),
+        .load (state == S_Check & load),
+        .data (data),
+        .resolve (check_resolve),
+        .result (check_result_str)
+    );
+    wire [B-1:0] check_result;
+    HexParser #(.L(1)) check_result_parser (
+        .str (check_result_str),
+        .num (check_result)
+    );
+
+    assign _errors[S_Check] == check_resolve && check_result != check_sum;
+/// @}
 
 
 /// 设置`state`
@@ -158,53 +200,55 @@ always @(*) begin
         S_Month: next_state = month_resolve ? S_Year : S_Month;
         S_Year: next_state = year_resolve ? S_Locale : S_Year;
         S_Locale: next_state = locale_resolve ? S_Check : S_Locale;
+        S_Check: next_state = S_Output;
+        S_Output: next_state = S_Prefix;
         default: next_state = S_Prefix;
     endcase
 end
 
 
 
-/** Output
+/** Outputs
  * @{
  */
-assign resolve = state == S_Output;
+    assign resolve = state == S_Output;
 
-// error
-always @(posedge clock or posedge reset) begin
-    if (reset || state == S_Prefix) begin
-        error <= '0;
-    end else begin
-        error <= error | (|_errors);
+    // error
+    always @(posedge clock or posedge reset) begin
+        if (reset || state == S_Prefix) begin
+            error <= '0;
+        end else begin
+            error <= error | (|_errors);
+        end
     end
-end
 
-// utc
-always @(posedge clock) begin
-    if (utc_resolve) begin
-        utc <= utc_result[B +:7*B];
+    // utc
+    always @(posedge clock) begin
+        if (utc_resolve) begin
+            utc <= utc_result[B +:7*B];
+        end
     end
-end
 
-/// day
-always @(posedge clock) begin
-    if (day_resolve) begin
-        day <= day_result[B +:2*B];
+    /// day
+    always @(posedge clock) begin
+        if (day_resolve) begin
+            day <= day_result[B +:2*B];
+        end
     end
-end
 
-/// month
-always @(posedge clock) begin
-    if (month_resolve) begin
-        month <= month_result[B +:2*B];
+    /// month
+    always @(posedge clock) begin
+        if (month_resolve) begin
+            month <= month_result[B +:2*B];
+        end
     end
-end
 
-/// year
-always @(posedge clock) begin
-    if (year_resolve) begin
-        year <= year_result[B +:2*B];
+    /// year
+    always @(posedge clock) begin
+        if (year_resolve) begin
+            year <= year_result[B +:2*B];
+        end
     end
-end
 
 /// @}
 
