@@ -10,10 +10,14 @@ $GPZDA,hhmmss.ss,dd,mm,yyyy,,*hh
 
 ## `GpsReceiver`
 
+分隔符由前一部分接收。在Prefix阶段，无法匹配时退回重来；在其它阶段则忽略错误，并在`_errors`及`error`中反映出来。
+
+> 大部分轮的状态都不变，图中未画出。
+
 ```mermaid
 stateDiagram-v2
     [*] --> Prefix
-    note right of Prefix: 匹配"$GPZDA,"；<br>任何时候不匹配都回到它。
+    note right of Prefix: $GPZDA
     
     Prefix --> UTC
     note left of UTC: hhmmss.ss
